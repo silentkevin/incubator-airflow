@@ -1061,6 +1061,10 @@ def flower(args):
     if args.broker_api:
         api = '--broker_api=' + args.broker_api
 
+    url_prefix = ''
+    if args.url_prefix:
+        url_prefix = '--url-prefix=' + args.url_prefix
+
     flower_conf = ''
     if args.flower_conf:
         flower_conf = '--conf=' + args.flower_conf
@@ -1077,7 +1081,8 @@ def flower(args):
         )
 
         with ctx:
-            os.execvp("flower", ['flower', '-b', broka, address, port, api, flower_conf])
+            os.execvp("flower", ['flower', '-b', broka, address, port, api, flower_conf,
+                                 url_prefix])
 
         stdout.close()
         stderr.close()
@@ -1085,7 +1090,8 @@ def flower(args):
         signal.signal(signal.SIGINT, sigint_handler)
         signal.signal(signal.SIGTERM, sigint_handler)
 
-        os.execvp("flower", ['flower', '-b', broka, address, port, api, flower_conf])
+        os.execvp("flower", ['flower', '-b', broka, address, port, api, flower_conf,
+                             url_prefix])
 
 
 def kerberos(args):  # noqa
@@ -1324,6 +1330,10 @@ class CLIFactory(object):
             default=conf.get('webserver', 'WEB_SERVER_PORT'),
             type=int,
             help="The port on which to run the server"),
+        'url_prefix': Arg(
+            ('-u', "--url_prefix"),
+            default=conf.get('webserver', 'WEB_SERVER_URL_PREFIX'),
+            help="URL prefix for the server"),
         'ssl_cert': Arg(
             ("--ssl_cert",),
             default=conf.get('webserver', 'WEB_SERVER_SSL_CERT'),
@@ -1417,6 +1427,10 @@ class CLIFactory(object):
         'flower_conf': Arg(
             ("-fc", "--flower_conf"),
             help="Configuration file for flower"),
+        'flower_url_prefix': Arg(
+            ("-u", "--url_prefix"),
+            default=conf.get('celery', 'FLOWER_URL_PREFIX'),
+            help="URL prefix for Flower"),
         'task_params': Arg(
             ("-tp", "--task_params"),
             help="Sends a JSON params dict to the task"),
@@ -1567,7 +1581,7 @@ class CLIFactory(object):
             'func': webserver,
             'help': "Start a Airflow webserver instance",
             'args': ('port', 'workers', 'workerclass', 'worker_timeout', 'hostname',
-                     'pid', 'daemon', 'stdout', 'stderr', 'access_logfile',
+                     'url_prefix', 'pid', 'daemon', 'stdout', 'stderr', 'access_logfile',
                      'error_logfile', 'log_file', 'ssl_cert', 'ssl_key', 'debug'),
         }, {
             'func': resetdb,
@@ -1591,8 +1605,9 @@ class CLIFactory(object):
         }, {
             'func': flower,
             'help': "Start a Celery Flower",
-            'args': ('flower_hostname', 'flower_port', 'flower_conf', 'broker_api',
-                     'pid', 'daemon', 'stdout', 'stderr', 'log_file'),
+            'args': ('flower_hostname', 'flower_port', 'flower_conf',
+                     'flower_url_prefix', 'broker_api', 'pid', 'daemon',
+                     'stdout', 'stderr', 'log_file'),
         }, {
             'func': version,
             'help': "Show the version",

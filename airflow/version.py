@@ -13,4 +13,4 @@
 # limitations under the License.
 #
 
-version = '1.9.0'
+version = 'v1.9.0-with-uri-patch'
