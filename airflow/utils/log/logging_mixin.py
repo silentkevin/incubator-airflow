@@ -135,6 +135,12 @@ def set_context(logger, value):
                 # Not all handlers need to have context passed in so we ignore
                 # the error when handlers do not have set_context defined.
                 pass
+            try:
+                handler.formatter.set_context(value)
+            except AttributeError:
+                # Not all formatters need to have context passed in so we ignore
+                # the error when handlers do not have set_context defined.
+                pass
         if _logger.propagate is True:
             _logger = _logger.parent
         else:
