@@ -110,8 +110,11 @@ def send_MIME_email(e_from, e_to, mime_msg, dryrun=False):
         if SMTP_USER and SMTP_PASSWORD:
             s.login(SMTP_USER, SMTP_PASSWORD)
         log.info("Sent an alert email to %s", e_to)
+        log.info("FINDME_EMAIL_ISSUE START")
+        s.set_debuglevel(1)
         s.sendmail(e_from, e_to, mime_msg.as_string())
         s.quit()
+        log.info("FINDME_EMAIL_ISSUE END")
 
 
 def get_email_address_list(address_string):
