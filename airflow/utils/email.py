@@ -23,6 +23,7 @@ from past.builtins import basestring
 import importlib
 import os
 import smtplib
+import time
 
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -50,6 +51,8 @@ def send_email_smtp(to, subject, html_content, files=None, dryrun=False, cc=None
 
     >>> send_email('test@example.com', 'foo', '<b>Foo</b> bar', ['/dev/null'], dryrun=True)
     """
+    log = LoggingMixin().log
+
     SMTP_MAIL_FROM = configuration.get('smtp', 'SMTP_MAIL_FROM')
 
     to = get_email_address_list(to)
@@ -84,7 +87,19 @@ def send_email_smtp(to, subject, html_content, files=None, dryrun=False, cc=None
             part['Content-ID'] = '<%s>' % basename
             msg.attach(part)
 
-    send_MIME_email(SMTP_MAIL_FROM, recipients, msg, dryrun)
+    max_attempts = configuration.get('smtp', 'SMTP_RETRY_MAX_ATTEMPTS')
+    sleep_time_in_seconds = configuration.get('smtp', 'SMTP_RETRY_SLEEP_TIME_IN_SECONDS')
+    attempt_num = 1
+    while attempt_num <= max_attempts:
+        try:
+            log.info("sending email attempt_num={attempt_num},max_attempts={max_attempts},sleep_time_in_seconds={sleep_time_in_seconds}".format(**locals()))
+            send_MIME_email(SMTP_MAIL_FROM, recipients, msg, dryrun)
+        except Exception as e:
+            log.exception(e)
+            log.error("Failed to send email at attempt_num={attempt_num}".format(**locals()))
+        finally:
+            attempt_num += 1
+            time.sleep(sleep_time_in_seconds)
 
 
 def send_MIME_email(e_from, e_to, mime_msg, dryrun=False):
