@@ -87,16 +87,17 @@ def send_email_smtp(to, subject, html_content, files=None, dryrun=False, cc=None
             part['Content-ID'] = '<%s>' % basename
             msg.attach(part)
 
-    max_attempts = configuration.get('smtp', 'SMTP_RETRY_MAX_ATTEMPTS')
-    sleep_time_in_seconds = configuration.get('smtp', 'SMTP_RETRY_SLEEP_TIME_IN_SECONDS')
+    max_attempts = configuration.getint('smtp', 'SMTP_RETRY_MAX_ATTEMPTS')
+    sleep_time_in_seconds = configuration.getfloat('smtp', 'SMTP_RETRY_SLEEP_TIME_IN_SECONDS')
     attempt_num = 1
     while attempt_num <= max_attempts:
         try:
-            log.info("sending email attempt_num={attempt_num},max_attempts={max_attempts},sleep_time_in_seconds={sleep_time_in_seconds}".format(**locals()))
+            log.info("FINDME_EMAIL_ISSUE SENDING sending email attempt_num={attempt_num},max_attempts={max_attempts},sleep_time_in_seconds={sleep_time_in_seconds}".format(**locals()))
             send_MIME_email(SMTP_MAIL_FROM, recipients, msg, dryrun)
+            return
         except Exception as e:
-            log.exception(e)
-            log.error("Failed to send email at attempt_num={attempt_num}".format(**locals()))
+            log.exception("FINDME_EMAIL_ISSUE_ERROR")
+            log.error("FINDME_EMAIL_ISSUE_ERROR Failed to send email at attempt_num={attempt_num},e=".format(**locals()) + repr(e))
         finally:
             attempt_num += 1
             time.sleep(sleep_time_in_seconds)
