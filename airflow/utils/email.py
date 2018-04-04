@@ -33,6 +33,7 @@ from email.utils import formatdate
 from airflow import configuration
 from airflow.exceptions import AirflowConfigException
 from airflow.utils.log.logging_mixin import LoggingMixin
+from airflow.settings import Stats
 
 
 def send_email(to, subject, html_content, files=None, dryrun=False, cc=None, bcc=None, mime_subtype='mixed'):
@@ -92,12 +93,15 @@ def send_email_smtp(to, subject, html_content, files=None, dryrun=False, cc=None
     attempt_num = 1
     while attempt_num <= max_attempts:
         try:
+            Stats.incr("email_util.send.attempt", 1, 1)
             log.info("FINDME_EMAIL_ISSUE SENDING sending email attempt_num={attempt_num},max_attempts={max_attempts},sleep_time_in_seconds={sleep_time_in_seconds}".format(**locals()))
             send_MIME_email(SMTP_MAIL_FROM, recipients, msg, dryrun)
+            Stats.incr("email_util.send.success", 1, 1)
             return
         except Exception as e:
             log.exception("FINDME_EMAIL_ISSUE_ERROR")
             log.error("FINDME_EMAIL_ISSUE_ERROR Failed to send email at attempt_num={attempt_num},e=".format(**locals()) + repr(e))
+            Stats.incr("email_util.send.error", 1, 1)
         finally:
             attempt_num += 1
             time.sleep(sleep_time_in_seconds)
