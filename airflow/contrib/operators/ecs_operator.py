@@ -52,7 +52,7 @@ class ECSOperator(BaseOperator):
     template_fields = ('overrides',)
 
     @apply_defaults
-    def __init__(self, task_definition, cluster, overrides,
+    def __init__(self, task_definition, cluster, overrides, network_configuration,
                  aws_conn_id=None, region_name=None, launch_type='EC2', **kwargs):
         super(ECSOperator, self).__init__(**kwargs)
 
@@ -61,6 +61,7 @@ class ECSOperator(BaseOperator):
         self.task_definition = task_definition
         self.cluster = cluster
         self.overrides = overrides
+        self.network_configuration = network_configuration
         self.launch_type = launch_type
 
         self.hook = self.get_hook()
@@ -82,7 +83,8 @@ class ECSOperator(BaseOperator):
             taskDefinition=self.task_definition,
             overrides=self.overrides,
             startedBy=self.owner,
-            launchType=self.launch_type
+            launchType=self.launch_type,
+            networkConfiguration=self.network_configuration
         )
 
         failures = response['failures']
